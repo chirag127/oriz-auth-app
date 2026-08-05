@@ -1,0 +1,8 @@
+node_modules
+dist
+.astro
+.env
+.env.enc
+*.log
+.DS_Store
+.wrangler

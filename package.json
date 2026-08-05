@@ -1,0 +1,26 @@
+{
+  "name": "@chirag127/oriz-auth-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "oriz central auth — Clerk-powered SSO hub for *.oriz.in (account.oriz.in / auth.oriz.in).",
+  "license": "MIT",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy:pages": "wrangler pages deploy dist --project-name=oriz-auth-app --branch=main --commit-dirty=true",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@clerk/clerk-js": "^6.26.0",
+    "astro": "^6.4.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.118.0"
+  }
+}

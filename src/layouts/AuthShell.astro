@@ -1,0 +1,277 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+const { title, subtitle } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{title} · oriz central auth</title>
+    <meta name="description" content="Central sign-in for the oriz.in family of sites." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="brand" aria-hidden="false">
+        <a class="mark" href="https://oriz.in">
+          <span class="glyph"></span>
+          <span class="wordmark">oriz</span>
+        </a>
+        <h1 class="brand-title">central auth</h1>
+        <p class="brand-copy">
+          One identity across every oriz.in site. Sign in once — stay signed in
+          everywhere.
+        </p>
+        <ul class="brand-points">
+          <li>Single sign-on for all <span>*.oriz.in</span></li>
+          <li>Google, GitHub, and email</li>
+          <li>Passkeys and MFA supported</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <header class="panel-head">
+          <h2>{title}</h2>
+          {subtitle && <p>{subtitle}</p>}
+        </header>
+        <div id="clerk-mount" class="clerk-mount"></div>
+        <p id="clerk-status" class="clerk-status" role="status" aria-live="polite">
+          Loading secure sign-in…
+        </p>
+        <footer class="panel-foot">
+          <a href="https://oriz.in">← Back to oriz.in</a>
+        </footer>
+      </section>
+    </main>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --ink: #1b2733;
+    --ink-soft: #4a5b6d;
+    --line: #e2e8f0;
+    --accent: #3d5a80;
+    --accent-deep: #293f5c;
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --radius: 16px;
+    --maxw: 1040px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 12% -10%, #dbe6f2 0%, transparent 55%),
+      radial-gradient(900px 500px at 100% 110%, #e6ecf3 0%, transparent 50%),
+      var(--bg);
+    display: grid;
+    place-items: center;
+    padding: 2rem 1.25rem;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: var(--maxw);
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow:
+      0 1px 2px rgba(27, 39, 51, 0.04),
+      0 24px 60px -28px rgba(27, 39, 51, 0.28);
+  }
+
+  .brand {
+    padding: 3rem 2.75rem;
+    background: linear-gradient(155deg, var(--accent) 0%, var(--accent-deep) 100%);
+    color: #eef4fb;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: #fff;
+    width: fit-content;
+  }
+
+  .glyph {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: #fff;
+    position: relative;
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .glyph::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    border-right-color: transparent;
+    transform: rotate(45deg);
+  }
+
+  .wordmark {
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-title {
+    margin: 1.4rem 0 0;
+    font-size: 2.35rem;
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .brand-copy {
+    margin: 0;
+    max-width: 34ch;
+    color: #cfe0f2;
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+
+  .brand-points {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+    font-size: 0.92rem;
+    color: #d8e6f5;
+  }
+  .brand-points li {
+    padding-left: 1.35rem;
+    position: relative;
+  }
+  .brand-points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9fc0e6;
+  }
+  .brand-points span {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 0.85em;
+    color: #fff;
+  }
+
+  .panel {
+    padding: 3rem 2.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: var(--panel);
+  }
+
+  .panel-head h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .panel-head p {
+    margin: 0.35rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  .clerk-mount {
+    min-height: 200px;
+  }
+  /* Clerk renders its own card; drop its outer chrome to sit clean in the panel. */
+  .clerk-mount .cl-rootBox,
+  .clerk-mount .cl-card {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+  }
+
+  .clerk-status {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+
+  .panel-foot {
+    margin-top: auto;
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+  }
+  .panel-foot a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .panel-foot a:hover,
+  .panel-foot a:focus-visible {
+    text-decoration: underline;
+  }
+
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 800px) {
+    .shell {
+      grid-template-columns: 1fr;
+    }
+    .brand {
+      padding: 2.25rem 1.75rem;
+    }
+    .brand-points {
+      margin-top: 1rem;
+    }
+    .panel {
+      padding: 2.25rem 1.75rem;
+    }
+  }
+</style>

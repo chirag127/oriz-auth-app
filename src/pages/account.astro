@@ -1,0 +1,37 @@
+---
+import AuthShell from "../layouts/AuthShell.astro";
+---
+
+<AuthShell title="Your account" subtitle="Manage your oriz.in identity">
+  <script>
+    import { Clerk } from "@clerk/clerk-js";
+    import { safeReturnUrl } from "../lib/return-url";
+
+    const KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY as string | undefined;
+    const mount = document.getElementById("clerk-mount");
+    const statusEl = document.getElementById("clerk-status");
+
+    if (!KEY) {
+      if (statusEl) statusEl.textContent = "Auth misconfigured: missing publishable key.";
+    } else if (mount) {
+      const clerk = new Clerk(KEY);
+      (window as unknown as { Clerk: Clerk }).Clerk = clerk;
+      await clerk.load();
+
+      if (!clerk.user) {
+        // Not signed in — bounce to sign-in, preserving any return target.
+        const back = safeReturnUrl(
+          new URLSearchParams(window.location.search).get("return"),
+        );
+        window.location.replace(`/sign-in?return=${encodeURIComponent(back)}`);
+      } else {
+        if (statusEl) statusEl.remove();
+        clerk.mountUserButton(mount, { afterSignOutUrl: "/sign-in" });
+        const hi = document.createElement("p");
+        hi.className = "clerk-status";
+        hi.textContent = `Signed in as ${clerk.user.primaryEmailAddress?.emailAddress ?? clerk.user.id}.`;
+        mount.after(hi);
+      }
+    }
+  </script>
+</AuthShell>

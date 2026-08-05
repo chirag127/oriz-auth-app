@@ -1,0 +1,32 @@
+---
+// Root — decide client-side: signed in -> /account, else -> /sign-in.
+// Preserve any incoming ?return= param.
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>oriz central auth</title>
+    <script>
+      import { Clerk } from "@clerk/clerk-js";
+      const KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY as string | undefined;
+      const qs = window.location.search;
+      if (!KEY) {
+        window.location.replace("/sign-in" + qs);
+      } else {
+        const clerk = new Clerk(KEY);
+        (window as unknown as { Clerk: Clerk }).Clerk = clerk;
+        await clerk.load();
+        window.location.replace((clerk.user ? "/account" : "/sign-in") + qs);
+      }
+    </script>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem; color: #4a5b6d;">
+      Redirecting to oriz central auth…
+    </p>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+---
+import AuthShell from "../layouts/AuthShell.astro";
+---
+
+<AuthShell title="Create account" subtitle="One identity for every oriz.in site">
+  <script>
+    import { bootstrapClerk } from "../lib/clerk";
+    bootstrapClerk("sign-up");
+  </script>
+</AuthShell>

@@ -1,0 +1,10 @@
+---
+import AuthShell from "../layouts/AuthShell.astro";
+---
+
+<AuthShell title="Sign in" subtitle="Access your oriz.in account">
+  <script>
+    import { bootstrapClerk } from "../lib/clerk";
+    bootstrapClerk("sign-in");
+  </script>
+</AuthShell>
