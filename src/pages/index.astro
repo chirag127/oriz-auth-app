@@ -11,14 +11,13 @@
     <meta name="robots" content="noindex" />
     <title>oriz central auth</title>
     <script>
-      import { Clerk } from "@clerk/clerk-js";
+      import { getClerk } from "../lib/clerk";
       const KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY as string | undefined;
       const qs = window.location.search;
       if (!KEY) {
         window.location.replace("/sign-in" + qs);
       } else {
-        const clerk = new Clerk(KEY);
-        (window as unknown as { Clerk: Clerk }).Clerk = clerk;
+        const clerk = await getClerk();
         await clerk.load();
         window.location.replace((clerk.user ? "/account" : "/sign-in") + qs);
       }
