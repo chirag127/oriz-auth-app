@@ -80,6 +80,15 @@ function ensureClerk(key: string): Promise<ClerkType> {
   return clerkReady;
 }
 
+// clerk.load() reads the UI ctor from its options; the core instance is
+// constructed by the CDN script before ui.browser.js finishes, so window's ctor
+// isn't picked up automatically — pass it in explicitly.
+export function loadOptions(extra?: Record<string, unknown>) {
+  const ClerkUI = (window as unknown as { __internal_ClerkUICtor?: unknown })
+    .__internal_ClerkUICtor;
+  return { ...extra, ui: { ClerkUI } } as Parameters<ClerkType["load"]>[0];
+}
+
 export async function getClerk(): Promise<ClerkType> {
   if (!PUBLISHABLE_KEY) throw new Error("missing publishable key");
   return ensureClerk(PUBLISHABLE_KEY);
@@ -98,7 +107,7 @@ export async function bootstrapClerk(kind: MountKind): Promise<void> {
   const returnUrl = readReturnUrl();
   const clerk = await ensureClerk(PUBLISHABLE_KEY);
 
-  await clerk.load({ appearance });
+  await clerk.load(loadOptions({ appearance }));
 
   // Already signed in? Send home immediately (SSO already established).
   if (clerk.user) {

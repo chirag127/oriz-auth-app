@@ -4,7 +4,7 @@ import AuthShell from "../layouts/AuthShell.astro";
 
 <AuthShell title="Your account" subtitle="Manage your oriz.in identity">
   <script>
-    import { getClerk } from "../lib/clerk";
+    import { getClerk, loadOptions } from "../lib/clerk";
     import { safeReturnUrl } from "../lib/return-url";
 
     const KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY as string | undefined;
@@ -15,7 +15,7 @@ import AuthShell from "../layouts/AuthShell.astro";
       if (statusEl) statusEl.textContent = "Auth misconfigured: missing publishable key.";
     } else if (mount) {
       const clerk = await getClerk();
-      await clerk.load();
+      await clerk.load(loadOptions());
 
       if (!clerk.user) {
         // Not signed in — bounce to sign-in, preserving any return target.
