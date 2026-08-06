@@ -24,41 +24,65 @@ const appearance = {
 } as const;
 
 // Frontend API host is base64-encoded in the publishable key (after pk_live_/pk_test_,
-// trailing `$` stripped). Used to build the UI-inclusive clerk.browser.js CDN URL.
+// trailing `$` stripped). Used to build the CDN URLs for the browser scripts.
 function frontendApiFromKey(key: string): string {
   const encoded = key.replace(/^pk_(live|test)_/, "");
-  const host = atob(encoded).replace(/\$$/, "");
-  return host;
+  return atob(encoded).replace(/\$$/, "");
 }
 
-// Load the UI-inclusive clerk.browser.js from the Frontend API CDN and return the
-// global Clerk instance. The npm `@clerk/clerk-js` bundle is effectively headless
-// (mountSignIn throws "Clerk was not loaded with Ui components"); the CDN browser
-// bundle self-registers window.Clerk WITH its UI components.
-function loadClerkScript(key: string): Promise<ClerkType> {
-  const w = window as unknown as { Clerk?: ClerkType };
-  if (w.Clerk) return Promise.resolve(w.Clerk);
-
+function loadScript(src: string, attrs: Record<string, string>): Promise<void> {
   return new Promise((resolve, reject) => {
-    const host = frontendApiFromKey(key);
-    const script = document.createElement("script");
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    script.setAttribute("data-clerk-publishable-key", key);
-    script.src = `https://${host}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
-    script.addEventListener("load", () => {
-      if (w.Clerk) resolve(w.Clerk);
-      else reject(new Error("Clerk script loaded but window.Clerk missing"));
-    });
-    script.addEventListener("error", () => reject(new Error("Failed to load Clerk script")));
-    document.head.appendChild(script);
+    const el = document.createElement("script");
+    el.async = true;
+    el.crossOrigin = "anonymous";
+    el.src = src;
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    el.addEventListener("load", () => resolve());
+    el.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)));
+    document.head.appendChild(el);
   });
+}
+
+// In @clerk/clerk-js v6 the prebuilt UI lives in a SEPARATE bundle (@clerk/ui →
+// ui.browser.js) that registers window.__internal_ClerkUICtor. The core
+// clerk.browser.js only READS that ctor — loading core alone leaves Clerk
+// effectively headless and mountSignIn throws "Clerk was not loaded with Ui
+// components". So load BOTH the core SDK and the UI bundle before clerk.load().
+let clerkReady: Promise<ClerkType> | null = null;
+
+function ensureClerk(key: string): Promise<ClerkType> {
+  const w = window as unknown as {
+    Clerk?: ClerkType;
+    __internal_ClerkUICtor?: unknown;
+  };
+  if (clerkReady) return clerkReady;
+
+  const host = frontendApiFromKey(key);
+  const attrs = { "data-clerk-publishable-key": key };
+
+  clerkReady = (async () => {
+    await Promise.all([
+      w.Clerk
+        ? Promise.resolve()
+        : loadScript(`https://${host}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`, attrs),
+      w.__internal_ClerkUICtor
+        ? Promise.resolve()
+        : loadScript(`https://${host}/npm/@clerk/ui@1/dist/ui.browser.js`, {
+            ...attrs,
+            "data-clerk-ui-script": "true",
+          }),
+    ]);
+    if (!w.Clerk) throw new Error("Clerk core loaded but window.Clerk missing");
+    if (!w.__internal_ClerkUICtor) throw new Error("Clerk UI bundle loaded but ctor missing");
+    return w.Clerk;
+  })();
+
+  return clerkReady;
 }
 
 export async function getClerk(): Promise<ClerkType> {
   if (!PUBLISHABLE_KEY) throw new Error("missing publishable key");
-  const clerk = await loadClerkScript(PUBLISHABLE_KEY);
-  return clerk;
+  return ensureClerk(PUBLISHABLE_KEY);
 }
 
 export async function bootstrapClerk(kind: MountKind): Promise<void> {
@@ -72,7 +96,7 @@ export async function bootstrapClerk(kind: MountKind): Promise<void> {
   if (!mount) return;
 
   const returnUrl = readReturnUrl();
-  const clerk = await loadClerkScript(PUBLISHABLE_KEY);
+  const clerk = await ensureClerk(PUBLISHABLE_KEY);
 
   await clerk.load({ appearance });
 
