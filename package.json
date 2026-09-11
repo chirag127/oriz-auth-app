@@ -15,12 +15,12 @@
   },
   "dependencies": {
     "@clerk/clerk-js": "^6.26.0",
-    "astro": "^6.4.8"
+    "astro": "^7.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
     "@types/node": "^22.10.0",
     "typescript": "^5.7.0",
-    "wrangler": "^4.118.0"
+    "wrangler": "^4.131.0"
   }
 }
