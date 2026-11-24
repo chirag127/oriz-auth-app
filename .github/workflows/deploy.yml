@@ -5,6 +5,8 @@ name: deploy
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -12,14 +14,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test return URL allowlist
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { safeReturnUrl, readReturnUrl } from './src/lib/return-url.ts';
+          for (const url of [
+            'https://oriz.in/dashboard', 'https://finance.oriz.in/app?x=1#tab',
+            'https://deep.app.oriz.in/', 'http://localhost:4321/', 'http://127.0.0.1:3000/'
+          ]) assert.equal(safeReturnUrl(url), new URL(url).href);
+          for (const url of [
+            null, undefined, '', '/relative', 'not a URL', 'javascript:alert(1)',
+            'https://oriz.in.evil.example/', 'https://eviloriz.in/',
+            'https://oriz.in@evil.example/', 'http://oriz.in/', 'ftp://oriz.in/'
+          ]) assert.equal(safeReturnUrl(url), 'https://oriz.in');
+          assert.equal(readReturnUrl(), 'https://oriz.in');
+          console.log('PASS: 17 return URL allowlist and SSR assertions');
+          NODE
+      - run: npm run typecheck
+      - run: npm run build
   deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
