@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@clerk/clerk-js": "^6.26.0",
-    "astro": "^6.4.8"
+    "astro": "^7.2.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
